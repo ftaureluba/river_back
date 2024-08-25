@@ -1,6 +1,7 @@
 from django.db import transaction
 import requests
 from .models import TeamModel, LeagueModel, StatisticsModel, PlayerModel
+from django.db.models import Sum
 
 def fetch_and_store_data(api_url):
     payload = {}
@@ -85,3 +86,27 @@ def fetch_and_store_data(api_url):
                     
     except requests.exceptions.RequestException as e:
         print(f"An error occurred: {e}")
+
+
+'''
+def process_and_update_data():
+
+    print()
+
+    return'''
+
+def print_goleadores(limit=10):
+    coso = PlayerModel.objects.all()
+    goleadores =[]
+    for cosa in coso:
+        goles = 0
+        for stat in cosa.stats.all():
+            stats = stat.statistics
+            if type(stats['goals']['total']) == int:
+                goles += stats['goals']['total']
+        
+        goleadores.append([cosa.name, goles])
+    
+    goleadores.sort(key=lambda x: x[1], reverse=True)
+    print(goleadores)
+    return
