@@ -15,3 +15,7 @@ def print_goleadores(limit=10):
     goleadores.sort(key=lambda x: x[1], reverse=True)
     print(goleadores)
     return
+
+def relevant_data():
+    coso = PlayerModel.objects.all()
+    

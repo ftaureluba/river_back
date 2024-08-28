@@ -3,6 +3,8 @@ import requests
 from .models import TeamModel, LeagueModel, StatisticsModel, PlayerModel
 from django.db.models import Sum
 
+
+
 def fetch_and_store_data(api_url):
     payload = {}
     headers = {

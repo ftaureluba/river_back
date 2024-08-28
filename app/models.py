@@ -32,3 +32,15 @@ class PlayerModel(models.Model):
     injured = models.BooleanField(blank=True, null=True)
     photo = models.URLField(blank=True, null=True)
     stats = models.ManyToManyField(StatisticsModel,blank=True, null=True)
+
+'''
+class RelevantData(models.Model):
+    name = models.CharField(max_length=100, blank=True, null=True)
+    partidos =  #titular, suplente ?? 
+    rating = models.FloatField(blank=True, null=True) #un int o float
+    goles = models.IntegerField(blank=True, null=True)#int
+    asistencias =  models.IntegerField(blank=True, null=True)#int
+    pases = models.IntegerField(blank=True, null=True)#int
+    tackles = models.IntegerField(blank=True, null=True)#int
+    duelos = # un porcentaje de ganados / total
+    gambetas = #tambien se puede hacer un porcentaje, hay attempts, success y 'past' que no se a que se refiere.'''
