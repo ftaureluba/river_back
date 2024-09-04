@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup
 import requests
-from app.models import PlayerModel
-
+from app.models import JugadorModel
+from django.db import transaction
 
 
 def data():
@@ -30,88 +30,99 @@ def data():
                 if datos_posta[1][j] in coso:
                   aux = datos_posta[1][j]
                   coso[f'{aux} per 90'] = datos_posta[i][j]
-                  print(type(datos_posta[i][j]))
+                  
                 else:
                   coso[datos_posta[1][j]] = datos_posta[i][j]
             
-            dict_datos.append(coso)
-        print(dict_datos)
+            #dict_datos.append(coso)
+            player_name = coso.get('Player', '')
+            nation = coso.get('Nation', '')
+            position = coso.get('Pos', '')
+            age = coso.get('Age', '')  # Consider changing to an int if needed
+            matches_played = int(coso.get('MP', '0') or '0')
+            starts = int(coso.get('Starts', '0') or '0')
+            minutes_played = coso.get('Min', '0')
+            if len(minutes_played) > 4:
+                minutes_played = minutes_played.replace(',', '')
+                minutes_played=int(minutes_played)
+            else : 
+                minutes_played = int(minutes_played or 0)
+
+            nineties = float(coso.get('90s', '0') or '0')
+            goals = int(coso.get('Gls', '0') or '0')
+            assists = int(coso.get('Ast', '0') or '0')
+            goals_plus_assists = int(coso.get('G+A', '0') or '0')
+            goals_minus_penalties = int(coso.get('G-PK', '0') or '0')
+            penalties = int(coso.get('PK', '0') or '0')
+            penalties_attempted = int(coso.get('PKatt', '0') or '0')
+            yellow_cards = int(coso.get('CrdY', '0') or '0')
+            red_cards = int(coso.get('CrdR', '0') or '0')
+            expected_goals = float(coso.get('xG', '0.0') or '0.0')
+            non_penalty_expected_goals = float(coso.get('npxG', '0.0') or '0.0')
+            expected_assists = float(coso.get('xAG', '0.0') or '0.0')
+            non_penalty_goals_plus_expected_assists = float(coso.get('npxG+xAG', '0.0') or '0.0')
+            progressive_carries = int(coso.get('PrgC', '0') or '0')
+            progressive_passes = int(coso.get('PrgP', '0') or '0')
+            progressive_passes_received = int(coso.get('PrgR', '0') or '0')
+            goals_per_ninety = float(coso.get('Gls per 90', '0.0') or '0.0')
+            assists_per_ninety = float(coso.get('Ast per 90', '0.0') or '0.0')
+            goals_plus_assists_per_ninety = float(coso.get('G+A per 90', '0.0') or '0.0')
+            goals_minus_penalties_per_ninety = float(coso.get('G-PK per 90', '0.0') or '0.0')
+            goals_plus_assists_minus_penalties_per_ninety = float(coso.get('G+A-PK', '0.0') or '0.0')
+            expected_goals_per_ninety = float(coso.get('xG per 90', '0.0') or '0.0')
+            expected_assists_per_ninety = float(coso.get('xAG per 90', '0.0') or '0.0')
+            expected_goals_plus_assists_per_ninety = float(coso.get('xG+xAG', '0.0') or '0.0')
+            non_penalty_expected_goals_per_ninety = float(coso.get('npxG per 90', '0.0') or '0.0')
+            non_penalty_goals_plus_expected_assists_per_ninety = float(coso.get('npxG+xAG per 90', '0.0') or '0.0')
+
+
+            with transaction.atomic():
+                player, created = JugadorModel.objects.update_or_create(
+                    player=player_name,
+                    defaults={
+                        'nation': nation,
+                        'position': position,
+                        'age': age,
+                        'matchesPlayed': matches_played,
+                        'starts': starts,
+                        'minutesPlayed': minutes_played,
+                        'nineties': nineties,
+                        'goals': goals,
+                        'assists': assists,
+                        'goalsPlusAssists': goals_plus_assists,
+                        'goalsMinusPenalties': goals_minus_penalties,
+                        'penalties': penalties,
+                        'penaltiesAttempted': penalties_attempted,
+                        'yellowCards': yellow_cards,
+                        'redCards': red_cards,
+                        'expectedGoals': expected_goals,
+                        'nonPenaltyExpectedGoals': non_penalty_expected_goals,
+                        'expectedAssists': expected_assists,
+                        'nonPenaltyGoalsPlusExpectedAssists': non_penalty_goals_plus_expected_assists,
+                        'progressiveCarries': progressive_carries,
+                        'progressivePasses': progressive_passes,
+                        'progressivePassesReceived': progressive_passes_received,
+                        'goalsPerNinety': goals_per_ninety,
+                        'assistsPerNinety': assists_per_ninety,
+                        'goalsPlusAssistsPerNinety': goals_plus_assists_per_ninety,
+                        'goalsMinusPenaltiesPerNinety': goals_minus_penalties_per_ninety,
+                        'goalsPlusAssistsMinusPenaltiesPerNinety': goals_plus_assists_minus_penalties_per_ninety,
+                        'expectedGoalsPerNinety': expected_goals_per_ninety,
+                        'expectedAssistsPerNinety': expected_assists_per_ninety,
+                        'expectedGoalsPlusAssistsPerNinety': expected_goals_plus_assists_per_ninety,
+                        'nonPenaltyExpectedGoalsPerNinety': non_penalty_expected_goals_per_ninety,
+                        'nonPenaltyGoalsPlusExpectedAssistsPerNinety': non_penalty_goals_plus_expected_assists_per_ninety,
+                    }
+                )
+        #print(dict_datos)
+
+        '''
+        Aca es donde tendria que importar las otras tables tambien, por ejemplo si position = FW importar la table de shooting y goal creation o lo q sea.
+        Esas tables las tengo q definir en models y que se linkeen al jugador por un foreign key y el nombre? quizas.
+        '''
         
     else: 
         print(f'error en el request {res.status_code}')
     return dict_datos
 
 
-def actualizar_db(datos):
-    tabla_jugadores = { #aca esta la tabla con los ids y nombres abreviados de los jugadores.
-        214:	'F. Colidio',
-        1201:	'E. Mammana',
-        1211:	'M. Kranevitter',
-        1688:	'R. Funes Mori',
-        2461:	'S. Rondón',
-        2463:	'F. Armani',
-        2469:	'G. Pezzella',
-        2473:	'M. Lanzini',
-        2479:	'M. Suárez',
-        2550:	'P. Díaz',
-        5985:	'E. Centurión',
-        5988:	'M. Casco',
-        5991:	'D. Martínez',
-        5995:	'N. de la Cruz',
-        5997:	'I. Fernández',
-        6003:	'E. Pérez',
-        6008:	'B. Zuculini',
-        6028:	'R. Aliendro',
-        6080:	'F. Bustos',
-        6237:	'E. Díaz',
-        6441:	'J. Paradela',
-        6492:	'C. Ledesma',
-        6519:	'R. Villagra',
-        6602:	'M. Herrera',
-        6645:	'A. Vigo',
-        9933:	'M. Borja',
-        11379:	'A. Batalla',
-        13402:	'A. Palavecino',
-        30690:	'N. Fonseca',
-        35550:	'M. Meza',
-        35551:	'A. Bareiro',
-        35709:	'J. Maidana',
-        50875:	'L. González',
-        50880:	'E. Barco',
-        50886:	'G. Martínez',
-        51571:	'A. Sant&apos;Anna',
-        125331:	'F. Gattoni',
-        125333:	'E. López',
-        129992:	'T. Colletta',
-        194906:	'P. Solari',
-        237143:	'S. Simón',
-        265971:	'L. Díaz',
-        286473:	'F. Carboni',
-        311316:	'F. Peña',
-        311317:	'F. Londoño',
-        316516:	'S. Boselli',
-        404717:	'A. Encinas',
-        413144:	'D. Zabala',
-        413145:	'G. Trindade',
-        413146:	'J. Flores',
-        414329:	'A. Ruberto',
-        414380:	'I. Subiabre',
-        414385:	'C. Echeverri',
-        414525:	'S. Beltrán',
-        414526:	'L. Lavagnino',
-        449249:	'F. Mastantuono',
-        449510:	'T. Leiva',
-        449511:	'A. González',
-        455255:	'J. Luna',
-        463850:	'T. Nasif',
-        463851:	'L. Rivero',
-        478954:	'S. Lencinas'
-        }
-    jugadores = PlayerModel.objects.all()
-    for player in datos:
-        
-        jugador = PlayerModel.objects.update_or_create(
-
-        )
-
-    return

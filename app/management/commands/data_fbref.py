@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from app.services.requestDataFBREF import data, actualizar_db
+from app.services.requestDataFBREF import data
 
 class Command(BaseCommand):
     help = 'Fetch and store data from an external API'
@@ -10,5 +10,5 @@ class Command(BaseCommand):
         
         self.stdout.write(self.style.SUCCESS('Ahi importe la data infeliz'))
 
-        actualizar_db(datos)
+        #actualizar_db(datos)
         self.stdout.write(self.style.SUCCESS('bien ahi perri actualice la db.'))
