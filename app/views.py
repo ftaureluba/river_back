@@ -1,9 +1,12 @@
 from django.shortcuts import render, HttpResponse
 from django.http import JsonResponse
 from .models import *
+from rest_framework import generics
 import requests
+from .serializers import JugadorSerializer
 
 
+'''
 def generate_request(url, params={}):
     payload={}
     headers = {
@@ -19,7 +22,7 @@ def generate_request(url, params={}):
 
 
 def home(request):
-    '''data = generate_request("https://v3.football.api-sports.io/players?season=2024&team=435")
+    data = generate_request("https://v3.football.api-sports.io/players?season=2024&team=435")
     response_data = []
 
     for jugador in data['response']:
@@ -30,5 +33,10 @@ def home(request):
             player_data
         )
 
-    return JsonResponse(response_data, safe=False)'''
+    return JsonResponse(response_data, safe=False)
     return HttpResponse('vamosriverlareputaquetepario')
+'''
+
+class JugadorListCreate(generics.ListCreateAPIView):
+    queryset = JugadorModel.objects.all()
+    serializerClass = JugadorSerializer
