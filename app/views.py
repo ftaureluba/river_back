@@ -39,4 +39,4 @@ def home(request):
 
 class JugadorListCreate(generics.ListCreateAPIView):
     queryset = JugadorModel.objects.all()
-    serializerClass = JugadorSerializer
+    serializer_class = JugadorSerializer
