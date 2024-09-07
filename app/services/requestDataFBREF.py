@@ -3,7 +3,7 @@ import requests
 from app.models import JugadorModel
 from django.db import transaction
 
-
+#, 'id': 'stats_shooting_combined'
 def data():
 
     url = 'https://fbref.com/en/squads/ef99c78c/2024/all_comps/River-Plate-Stats-All-Competitions'
@@ -34,11 +34,11 @@ def data():
                 else:
                   coso[datos_posta[1][j]] = datos_posta[i][j]
             
-            #dict_datos.append(coso)
+            
             player_name = coso.get('Player', '')
             nation = coso.get('Nation', '')
             position = coso.get('Pos', '')
-            age = coso.get('Age', '')  # Consider changing to an int if needed
+            age = coso.get('Age', '') 
             matches_played = int(coso.get('MP', '0') or '0')
             starts = int(coso.get('Starts', '0') or '0')
             minutes_played = coso.get('Min', '0')
@@ -114,12 +114,9 @@ def data():
                         'nonPenaltyGoalsPlusExpectedAssistsPerNinety': non_penalty_goals_plus_expected_assists_per_ninety,
                     }
                 )
-        #print(dict_datos)
+        
 
-        '''
-        Aca es donde tendria que importar las otras tables tambien, por ejemplo si position = FW importar la table de shooting y goal creation o lo q sea.
-        Esas tables las tengo q definir en models y que se linkeen al jugador por un foreign key y el nombre? quizas.
-        '''
+        
         
     else: 
         print(f'error en el request {res.status_code}')
