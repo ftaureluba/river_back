@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup
 import requests
-from app.models import JugadorModel
+from app.models import JugadorModel, ShootingModel, GoalAndShotCreation, GoalkeeperStats, Passing, PassTypes, DefensiveActions
 from django.db import transaction
 
 #, 'id': 'stats_shooting_combined'
@@ -12,10 +12,17 @@ def data():
     if res.status_code == 200:
         soup = BeautifulSoup(res.text, 'html.parser')
         
-        tablas = soup.find('table',{'id': 'stats_standard_combined'}) 
+        general_table = soup.find('table',{'id': 'stats_standard_combined'})
+        goalkeeping_table = soup.find('table', {'id':'stats_keeper_adv_combined'}) 
+        shooting_table = soup.find('table', {'id' : 'stats_shooting_combined'})
+        passing_table = soup.find('table', {'id' : 'stats_passing_combined'})
+        pass_types = soup.find('table', {'id' : 'stats_passing_types_combined'})
+        goal_and_shot_creation_table = soup.find('table', {'id' : 'stats_gca_combined'})
+        defensive_table = soup.find('table', {'id' : 'stats_defense_combined'})
+
         datos_posta = []
-        if tablas:
-            coso = tablas.find_all('tr')
+        if general_table:
+            coso = general_table.find_all('tr')
             for row in coso:
                 data = row.find_all(['th', 'td']) 
                 cell_data = [celda.get_text(strip=True) for celda in data]
@@ -116,6 +123,59 @@ def data():
                 )
         
 
+        #CHEQUEAR SI ESTO FUNCIONA???????? CREO Q ES CUALQUIER COSA MAL
+        
+    if shooting_table:
+            shooting_rows = shooting_table.find_all('tr')
+            for row in shooting_rows[2:]:
+                data = row.find_all(['th', 'td']) 
+                shooting_data = [celda.get_text(strip=True) for celda in data]
+                
+                player_name = shooting_data[0]
+                goals = int(shooting_data[5]) if shooting_data[5] else 0
+                shots_total = int(shooting_data[6]) if shooting_data[6] else 0
+                shots_on_target = int(shooting_data[7]) if shooting_data[7] else 0
+                shot_accuracy = float(shooting_data[8]) if shooting_data[8] else 0.0
+                shots_per_ninety = float(shooting_data[9]) if shooting_data[9] else 0.0
+                shots_on_target_per_ninety = float(shooting_data[10]) if shooting_data[10] else 0.0
+                goals_per_shot = float(shooting_data[11]) if shooting_data[11] else 0.0
+                goals_per_shot_on_target = float(shooting_data[12]) if shooting_data[12] else 0.0
+                average_shot_distance = float(shooting_data[13]) if shooting_data[13] else 0.0
+                shots_from_freekick = int(shooting_data[14]) if shooting_data[14] else 0
+                penalty_kicks_made = int(shooting_data[15]) if shooting_data[15] else 0
+                penalty_kicks_attempted = int(shooting_data[16]) if shooting_data[16] else 0
+                expected_goals = float(shooting_data[17]) if shooting_data[17] else 0.0
+                non_penalty_expected_goals = float(shooting_data[18]) if shooting_data[18] else 0.0
+                non_penalty_expected_goals_per_shot = float(shooting_data[19]) if shooting_data[19] else 0.0
+                goals_minus_expected_goals = float(shooting_data[20]) if shooting_data[20] else 0.0
+                non_penalty_goals_minus_non_penalty_expected_goals = float(shooting_data[21]) if shooting_data[21] else 0.0
+
+                player = JugadorModel.objects.filter(player=player_name).first()
+                with transaction.atomic():
+                    if player:
+                        ShootingModel.objects.update_or_create(
+                            player=player,
+                            defaults={
+                                'shotsTotal': shots_total,
+                                'shotsOnTarget': shots_on_target,
+                                'goals': goals,
+                                'percentShotsOnTarget': shot_accuracy,
+                                'shotsPerNinety': shots_per_ninety,
+                                'shotsOnTargetPerNinety': shots_on_target_per_ninety,
+                                'goalsPerShot': goals_per_shot,
+                                'goalsPerShotOnTarget': goals_per_shot_on_target,
+                                'averageShotDistance': average_shot_distance,
+                                'shotFromFreekicks': shots_from_freekick,
+                                'penaltyKicks': penalty_kicks_made,
+                                'penaltyKicksAttempted': penalty_kicks_attempted,
+                                'expectedGoals': expected_goals,
+                                'nonPenaltyExpectedGoals': non_penalty_expected_goals,
+                                'nonPenaltyExpectedGoalsPerShot': non_penalty_expected_goals_per_shot,
+                                'goalsMinusExpectedGoals': goals_minus_expected_goals,
+                                'nonPenaltyGoalsMinusNonPenaltyExpectedGoals': non_penalty_goals_minus_non_penalty_expected_goals
+                            }
+                        )
+                
         
         
     else: 

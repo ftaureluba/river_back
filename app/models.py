@@ -38,7 +38,7 @@ class JugadorModel(models.Model):
 
 
 class ShootingModel(models.Model):
-    player = models.ForeignKey(JugadorModel, on_delete=models.CASCADE)
+    player = models.OneToOneField(JugadorModel, on_delete=models.CASCADE)
     goals = models.IntegerField()
     shotsTotal= models.IntegerField()
     shotsOnTarget= models.IntegerField()
@@ -59,7 +59,7 @@ class ShootingModel(models.Model):
 
 
 class GoalkeeperStats(models.Model):
-    player = models.ForeignKey(JugadorModel, on_delete=models.CASCADE)
+    player = models.OneToOneField(JugadorModel, on_delete=models.CASCADE)
     goalsAgainst = models.IntegerField()  # 'GA' - number of goals conceded (int)
     penaltiesAgainst = models.IntegerField()  # 'PKA' - penalties against (int)
     freeKicksAgainst = models.IntegerField()  # 'FK' - free kicks conceded (int)
@@ -93,7 +93,7 @@ class GoalkeeperStats(models.Model):
 
 
 class Passing(models.Model):
-    player = models.ForeignKey(JugadorModel, on_delete=models.CASCADE)
+    player = models.OneToOneField(JugadorModel, on_delete=models.CASCADE)
     completed = models.IntegerField()
     attempted = models.IntegerField()
     completedPercentage = models.FloatField()
@@ -120,7 +120,7 @@ class Passing(models.Model):
 
 
 class PassTypes(models.Model):
-    player = models.ForeignKey(JugadorModel, on_delete=models.CASCADE)
+    player = models.OneToOneField(JugadorModel, on_delete=models.CASCADE)
     passesAttempted = models.IntegerField()
     livePasses = models.IntegerField()
     deadPasses = models.IntegerField()
@@ -138,7 +138,7 @@ class PassTypes(models.Model):
     passesBlocked = models.IntegerField()
 
 class GoalAndShotCreation(models.Model): 
-    player = models.ForeignKey(JugadorModel, on_delete=models.CASCADE)
+    player = models.OneToOneField(JugadorModel, on_delete=models.CASCADE)
     shotCreatiingAction = models.IntegerField()
     shotCreatiingActionPerNinety = models.FloatField()
     liveSCA = models.IntegerField()
@@ -158,7 +158,7 @@ class GoalAndShotCreation(models.Model):
 
 
 class DefensiveActions(models.Model):
-    player = models.ForeignKey(JugadorModel, on_delete=models.CASCADE)
+    player = models.OneToOneField(JugadorModel, on_delete=models.CASCADE)
     tackles = models.IntegerField()
     tacklesWon = models.IntegerField()
     tacklesDefensiveThird = models.IntegerField()
