@@ -429,10 +429,60 @@ def data():
             
             
             
-            
-            
-            
-            
+    if defensive_table:
+            defensive_rows = defensive_table.find_all('tr')
+            for row in defensive_rows[2:]:
+                data = row.find_all(['th', 'td'])
+                defensive_data = [celda.get_text(strip=True) for celda in data]
+                
+                player_name = defensive_data[0]
+
+                tackles = int(defensive_data[5]) if defensive_data[5] else 0
+                tacklesWon = int(defensive_data[6]) if defensive_data[6] else 0
+                tacklesDefensiveThird = int(defensive_data[7]) if defensive_data[7] else 0
+                tacklesMiddleThird = int(defensive_data[8]) if defensive_data[8] else 0
+                tacklesAttackingThird = int(defensive_data[9]) if defensive_data[9] else 0
+                dribblersTackled = int(defensive_data[10]) if defensive_data[10] else 0
+                dribblesChallenged = int(defensive_data[11]) if defensive_data[11] else 0
+                dribblersTackledPercentage = float(defensive_data[12]) if defensive_data[12] else 0.0
+                challengesLost = int(defensive_data[13]) if defensive_data[13] else 0
+                blocks = int(defensive_data[14]) if defensive_data[14] else 0
+                shotsBlocked = int(defensive_data[15]) if defensive_data[15] else 0
+                passesBlocked = int(defensive_data[16]) if defensive_data[16] else 0
+                interceptions = int(defensive_data[17]) if defensive_data[17] else 0
+                tacklesPlusInterceptions = int(defensive_data[18]) if defensive_data[18] else 0
+                clearances = int(defensive_data[19]) if defensive_data[19] else 0
+                errors = int(defensive_data[20]) if defensive_data[20] else 0
+
+
+                player = JugadorModel.objects.filter(player=player_name).first()
+
+                with transaction.atomic():
+                    if player: 
+                        DefensiveActions.objects.update_or_create(
+                            player = player,
+                            defaults={
+                                'tackles':tackles,
+                                'tacklesWon':tacklesWon,
+                                'tacklesDefensiveThird': tacklesDefensiveThird,
+                                'tacklesMiddleThird': tacklesMiddleThird,
+                                'tacklesAttackingThird': tacklesAttackingThird,
+                                'dribblersTackled': dribblersTackled,
+                                'dribblesChallenged': dribblesChallenged,
+                                'dribblersTackledPercentage': dribblersTackledPercentage,
+                                'challengesLost': challengesLost,
+                                'blocks': blocks,
+                                'shotsBlocked': shotsBlocked,
+                                'passesBlocked': passesBlocked,
+                                'interceptions': interceptions,
+                                'tacklesPlusInterceptions': tacklesPlusInterceptions,
+                                'clearances': clearances,
+                                'errors': errors
+                            }
+                        )            
+                
+                
+                
 
 
 
