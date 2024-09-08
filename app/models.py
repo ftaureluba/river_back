@@ -70,9 +70,9 @@ class GoalkeeperStats(models.Model):
     psxgPerShotOnTarget = models.FloatField()  # 'PSxG/SoT' - expected goals per shot on target (float)
     psxgGoalDifference = models.FloatField()  # 'PSxG+/-' - post-shot xG goal difference (float)
     psxgPer90 = models.FloatField()  # '/90' - PSxG per 90 minutes (float)
-    passesCompleted = models.IntegerField()  # 'Cmp' - completed passes (int)
-    passesAttempted = models.IntegerField()  # 'Att' - attempted passes (int)
-    passCompletionPercentage = models.FloatField()  # 'Cmp%' - pass completion rate (float)
+    launchedCompleted = models.IntegerField()  # 'Cmp' - completed passes (int)
+    launchedAttempted = models.IntegerField()  # 'Att' - attempted passes (int)
+    launchCompletionPercentage = models.FloatField()  # 'Cmp%' - pass completion rate (float)
     
     goalkeeperPassesAttempted = models.IntegerField()  # 'Att (GK)' - passes attempted by the GK (int)
     throwsAttempted = models.IntegerField()  # 'Thr' - throws attempted (int)

@@ -121,10 +121,7 @@ def data():
                         'nonPenaltyGoalsPlusExpectedAssistsPerNinety': non_penalty_goals_plus_expected_assists_per_ninety,
                     }
                 )
-        
-
-        #CHEQUEAR SI ESTO FUNCIONA???????? CREO Q ES CUALQUIER COSA MAL
-        
+              
     if shooting_table:
             shooting_rows = shooting_table.find_all('tr')
             for row in shooting_rows[2:]:
@@ -176,7 +173,86 @@ def data():
                             }
                         )
                 
-        
+    if goalkeeping_table:
+            goalkeeping_rows = goalkeeping_table.find_all('tr')
+            for row in goalkeeping_rows[2:]:
+                data = row.find_all(['th', 'td']) 
+                goalkeeping_data = [celda.get_text(strip=True) for celda in data]
+                
+                player_name = goalkeeping_data[0]
+                goals_against = int(goalkeeping_data[5]) if goalkeeping_data[5] else 0
+                penalty_kicks_allowed = int(goalkeeping_data[6]) if goalkeeping_data[6] else 0
+                free_kicks = int(goalkeeping_data[7]) if goalkeeping_data[7] else 0
+                corner_kicks = int(goalkeeping_data[8]) if goalkeeping_data[8] else 0
+                own_goals = int(goalkeeping_data[9]) if goalkeeping_data[9] else 0
+
+                
+                psxg = float(goalkeeping_data[10]) if goalkeeping_data[10] else 0.0
+                psxg_sot = float(goalkeeping_data[11]) if goalkeeping_data[11] else 0.0
+                psxg_plus_minus = float(goalkeeping_data[12]) if goalkeeping_data[12] else 0.0
+                psxg_per_90 = float(goalkeeping_data[13]) if goalkeeping_data[13] else 0.0
+
+                
+                launched_cmp = int(goalkeeping_data[14]) if goalkeeping_data[14] else 0
+                launched_att = int(goalkeeping_data[15]) if goalkeeping_data[15] else 0
+                launched_cmp_pct = float(goalkeeping_data[16]) if goalkeeping_data[16] else 0.0
+
+                
+                passes_att = int(goalkeeping_data[17]) if goalkeeping_data[17] else 0
+                passes_thrown = int(goalkeeping_data[18]) if goalkeeping_data[18] else 0
+                passes_launch_pct = float(goalkeeping_data[19]) if goalkeeping_data[19] else 0.0
+                passes_avg_length = float(goalkeeping_data[20]) if goalkeeping_data[20] else 0.0
+
+                
+                goal_kicks_att = int(goalkeeping_data[21]) if goalkeeping_data[21] else 0
+                goal_kicks_launch_pct = float(goalkeeping_data[22]) if goalkeeping_data[22] else 0.0
+                goal_kicks_avg_length = float(goalkeeping_data[23]) if goalkeeping_data[23] else 0.0
+
+                
+                crosses_opp = int(goalkeeping_data[24]) if goalkeeping_data[24] else 0
+                crosses_stopped = int(goalkeeping_data[25]) if goalkeeping_data[25] else 0
+                crosses_stopped_pct = float(goalkeeping_data[26]) if goalkeeping_data[26] else 0.0
+
+                
+                sweeper_opa = int(goalkeeping_data[27]) if goalkeeping_data[27] else 0
+                sweeper_opa_per_90 = float(goalkeeping_data[28]) if goalkeeping_data[28] else 0.0
+                sweeper_avg_dist = float(goalkeeping_data[29]) if goalkeeping_data[29] else 0.0
+
+                player = JugadorModel.objects.filter(player=player_name).first()
+
+                with transaction.atomic():
+                    if player:
+                        GoalkeeperStats.objects.update_or_create(
+                            player=player,
+                            defaults={
+                                
+                                'goalsAgainst': goals_against,
+                                'penaltiesAgainst': penalty_kicks_allowed,
+                                'freeKicksAgainst': free_kicks,
+                                'cornerKicksAgainst': corner_kicks,
+                                'ownGoals': own_goals,
+                                'postShotExpectedGoals': psxg,
+                                'psxgPerShotOnTarget': psxg_sot,
+                                'psxgGoalDifference': psxg_plus_minus,
+                                'psxgPer90': psxg_per_90,
+                                'launchedCompleted': launched_cmp,
+                                'launchedAttempted': launched_att,
+                                'launchCompletionPercentage': launched_cmp_pct,
+                                'goalkeeperPassesAttempted': passes_att,
+                                'throwsAttempted': passes_thrown,
+                                'launchPassesPercentage': passes_launch_pct,
+                                'launchAvgLength': passes_avg_length,
+                                'goalKicksAttemptedOther': goal_kicks_att,
+                                'goalKicksLaunchPercentage': goal_kicks_launch_pct,
+                                'goalKicksAvgLength': goal_kicks_avg_length,
+                                'crossesFaced': crosses_opp,
+                                'crossesStopped': crosses_stopped,
+                                'crossesStoppedPercentage': crosses_stopped_pct,
+                                'sweeperActions': sweeper_opa,
+                                'sweeperActionsPer90': sweeper_opa_per_90,
+                                'avgDistanceOfSweeperActions': sweeper_avg_dist
+                            }
+                        )
         
     else: 
         print(f'error en el request {res.status_code}')
