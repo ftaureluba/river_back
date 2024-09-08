@@ -259,34 +259,28 @@ def data():
         for row in passing_rows[2:]:  # Skip the header rows
             data = row.find_all(['th', 'td']) 
             passing_data = [celda.get_text(strip=True) for celda in data]
-            print(passing_data)
 
             player_name = passing_data[0]
             
             
-            # Total Passing
             completed = int(passing_data[5]) if passing_data[5] else 0
             attempted = int(passing_data[6]) if passing_data[6] else 0
             completed_percentage = float(passing_data[7]) if passing_data[7] else 0.0
             total_distance = int(passing_data[8]) if passing_data[8] else 0
             progressive_distance = int(passing_data[9]) if passing_data[9] else 0
 
-            # Short Passing
             short_completed = int(passing_data[10]) if passing_data[10] else 0
             short_attempted = int(passing_data[11]) if passing_data[11] else 0
             short_completed_percentage = float(passing_data[12]) if passing_data[12] else 0.0
 
-            # Medium Passing
             medium_completed = int(passing_data[13]) if passing_data[13] else 0
             medium_attempted = int(passing_data[14]) if passing_data[14] else 0
             medium_completed_percentage = float(passing_data[15]) if passing_data[15] else 0.0
 
-            # Long Passing
             long_completed = int(passing_data[16]) if passing_data[16] else 0
             long_attempted = int(passing_data[17]) if passing_data[17] else 0
             long_completed_percentage = float(passing_data[18]) if passing_data[18] else 0.0
 
-            # Expected and Other Metrics
             assists = int(passing_data[19]) if passing_data[19] else 0
             expected_assisted_goals = float(passing_data[20]) if passing_data[20] else 0.0
             expected_assists = float(passing_data[21]) if passing_data[21] else 0.0
@@ -297,7 +291,6 @@ def data():
             crosses_into_penalty_area = int(passing_data[26]) if passing_data[26] else 0
             progressive_passes = int(passing_data[27]) if passing_data[27] else 0
 
-            # Link with the player
             player = JugadorModel.objects.filter(player=player_name).first()
 
             with transaction.atomic():
@@ -331,7 +324,67 @@ def data():
                         }
                     )
 
-    
+    if pass_types:
+        pass_types_rows = pass_types.find_all('tr')
+        for row in pass_types_rows[2:]:
+            data = row.find_all(['th', 'td'])
+            pass_types_data = [celda.get_text(strip=True) for celda in data]
+            
+            player_name = pass_types_data[0]
+
+            passesAttempted = int(pass_types_data[5]) if pass_types_data[5] else 0
+            livePasses = int(pass_types_data[6]) if pass_types_data[6] else 0
+            deadPasses = int(pass_types_data[7]) if pass_types_data[7] else 0
+            freeKicks = int(pass_types_data[8]) if pass_types_data[8] else 0
+            throughBalls = int(pass_types_data[9]) if pass_types_data[9] else 0
+            switches = int(pass_types_data[10]) if pass_types_data[10] else 0
+            crosses = int(pass_types_data[11]) if pass_types_data[11] else 0
+            throwIns = int(pass_types_data[12]) if pass_types_data[12] else 0
+            corners = int(pass_types_data[13]) if pass_types_data[13] else 0
+            cornersIn = int(pass_types_data[14]) if pass_types_data[14] else 0
+            cornersOut = int(pass_types_data[15]) if pass_types_data[15] else 0
+            cornersStraight = int(pass_types_data[16]) if pass_types_data[16] else 0
+            passesCompleted = int(pass_types_data[17]) if pass_types_data[17] else 0
+            passesOffside = int(pass_types_data[18]) if pass_types_data[18] else 0
+            passesBlocked = int(pass_types_data[19]) if pass_types_data[19] else 0
+            
+            player = JugadorModel.objects.filter(player=player_name).first()
+
+            with transaction.atomic():
+                if player: 
+                    PassTypes.objects.update_or_create(
+                        player = player,
+                        defaults={
+                            'passesAttempted':passesAttempted,
+                            'livePasses':livePasses,
+                            'deadPasses': deadPasses,
+                            'freeKicks': freeKicks,
+                            'throughBalls': throughBalls,
+                            'switches': switches,
+                            'crosses': crosses,
+                            'throwIns': throwIns,
+                            'corners': corners,
+                            'cornersIn': cornersIn,
+                            'cornersOut': cornersOut,
+                            'cornersStraight': cornersStraight,
+                            'passesCompleted': passesCompleted,
+                            'passesOffside': passesOffside,
+                            'passesBlocked': passesBlocked
+                        }
+                    )
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+
+
+
     else: 
         print(f'error en el request {res.status_code}')
     return dict_datos
