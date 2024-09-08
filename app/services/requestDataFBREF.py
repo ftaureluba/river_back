@@ -374,6 +374,57 @@ def data():
                     )
             
             
+    if goal_and_shot_creation_table:
+        gc_rows = goal_and_shot_creation_table.find_all('tr')
+        for row in gc_rows[2:]:
+            data = row.find_all(['th', 'td'])
+            gc_data = [celda.get_text(strip=True) for celda in data]
+            
+            player_name = gc_data[0]
+
+            shotCreatiingAction = int(gc_data[5]) if gc_data[5] else 0
+            shotCreatiingActionPerNinety = float(gc_data[6]) if gc_data[6] else 0.0
+            liveSCA = int(gc_data[7]) if gc_data[7] else 0
+            deadSCA = int(gc_data[8]) if gc_data[8] else 0
+            takeOnSCA = int(gc_data[9]) if gc_data[9] else 0
+            shotSCA = int(gc_data[10]) if gc_data[10] else 0
+            fouldDrawnSCA = int(gc_data[11]) if gc_data[11] else 0
+            defensiveSCA = int(gc_data[12]) if gc_data[12] else 0
+            goalCreatingAction = int(gc_data[13]) if gc_data[13] else 0
+            goalCreatingActionPerNinety = float(gc_data[14]) if gc_data[14] else 0.0
+            liveGCA = int(gc_data[15]) if gc_data[15] else 0
+            deadGCA = int(gc_data[16]) if gc_data[16] else 0
+            takeOnGCA = int(gc_data[17]) if gc_data[17] else 0
+            shotGCA = int(gc_data[18]) if gc_data[18] else 0
+            fouldDrawnGCA = int(gc_data[19]) if gc_data[19] else 0
+            defensiveGCA = int(gc_data[20]) if gc_data[20] else 0
+
+
+            player = JugadorModel.objects.filter(player=player_name).first()
+
+            with transaction.atomic():
+                if player: 
+                    GoalAndShotCreation.objects.update_or_create(
+                        player = player,
+                        defaults={
+                            'shotCreatiingAction':shotCreatiingAction,
+                            'shotCreatiingActionPerNinety':shotCreatiingActionPerNinety,
+                            'liveSCA': liveSCA,
+                            'deadSCA': deadSCA,
+                            'takeOnSCA': takeOnSCA,
+                            'shotSCA': shotSCA,
+                            'fouldDrawnSCA': fouldDrawnSCA,
+                            'defensiveSCA': defensiveSCA,
+                            'goalCreatingAction': goalCreatingAction,
+                            'goalCreatingActionPerNinety': goalCreatingActionPerNinety,
+                            'liveGCA': liveGCA,
+                            'deadGCA': deadGCA,
+                            'takeOnGCA': takeOnGCA,
+                            'shotGCA': shotGCA,
+                            'fouldDrawnGCA': fouldDrawnGCA,
+                            'defensiveGCA': defensiveGCA
+                        }
+                    )
             
             
             
