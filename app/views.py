@@ -12,7 +12,7 @@ class JugadorListCreate(generics.ListCreateAPIView):
     queryset = JugadorModel.objects.select_related(
     'shootingmodel', 
     'goalandshotcreation', 
-    'goalkeeper', 
+    'goalkeeperstats', 
     'defensiveactions', 
     'passing', 
     'passtypes'
