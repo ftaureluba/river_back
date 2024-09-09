@@ -373,7 +373,6 @@ def data():
                         }
                     )
             
-            
     if goal_and_shot_creation_table:
         gc_rows = goal_and_shot_creation_table.find_all('tr')
         for row in gc_rows[2:]:
@@ -425,9 +424,6 @@ def data():
                             'defensiveGCA': defensiveGCA
                         }
                     )
-            
-            
-            
             
     if defensive_table:
             defensive_rows = defensive_table.find_all('tr')
@@ -481,11 +477,6 @@ def data():
                             }
                         )            
                 
-                
-                
-
-
-
     else: 
         print(f'error en el request {res.status_code}')
     return dict_datos
