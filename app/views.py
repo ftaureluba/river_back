@@ -15,6 +15,7 @@ class JugadorListCreate(generics.ListCreateAPIView):
     'goalkeeperstats', 
     'defensiveactions', 
     'passing', 
-    'passtypes'
+    'passtypes',
+    'possession'
     ).all()
     serializer_class = JugadorSerializer

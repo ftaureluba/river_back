@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup
 import requests
-from app.models import JugadorModel, ShootingModel, GoalAndShotCreation, GoalkeeperStats, Passing, PassTypes, DefensiveActions
+from app.models import JugadorModel,Possession, ShootingModel, GoalAndShotCreation, GoalkeeperStats, Passing, PassTypes, DefensiveActions
 from django.db import transaction
 
 #, 'id': 'stats_shooting_combined'
@@ -19,6 +19,7 @@ def data():
         pass_types = soup.find('table', {'id' : 'stats_passing_types_combined'})
         goal_and_shot_creation_table = soup.find('table', {'id' : 'stats_gca_combined'})
         defensive_table = soup.find('table', {'id' : 'stats_defense_combined'})
+        possession_table = soup.find('table', {'id': 'stats_possession_combined'})
 
         datos_posta = []
         if general_table:
@@ -477,6 +478,70 @@ def data():
                             }
                         )            
                 
+    if possession_table:
+        possession_rows = possession_table.find_all('tr')
+        for row in possession_rows[2:]:
+            data = row.find_all(['th', 'td'])
+            possession_data = [celda.get_text(strip=True) for celda in data]
+
+            player_name = possession_data[0]
+
+            touches = int(possession_data[5]) if possession_data[5] else 0
+            touchesPenaltyArea = int(possession_data[6]) if possession_data[6] else 0
+            touchesDefense = int(possession_data[7]) if possession_data[7] else 0
+            touchesMiddle = int(possession_data[8]) if possession_data[8] else 0
+            touchesOffense = int(possession_data[9]) if possession_data[9] else 0
+            touchesOpponentPenaltyArea = int(possession_data[10]) if possession_data[10] else 0
+            touchesLiveBall = int(possession_data[11]) if possession_data[11] else 0
+            takeOnAttempted = int(possession_data[12]) if possession_data[12] else 0
+            takeOnSuccesful = int(possession_data[13]) if possession_data[13] else 0
+            takeOnSuccesfulPorcentage = float(possession_data[14]) if possession_data[14] else 0.0
+            takeOnTackled = int(possession_data[15]) if possession_data[15] else 0
+            takeOnTackledPorcentage = float(possession_data[16]) if possession_data[16] else 0.0
+            carries  = int(possession_data[17]) if possession_data[17] else 0
+            carriesTotalDistance = int(possession_data[18]) if possession_data[18] else 0
+            carriesProgressiveDistance = int(possession_data[19]) if possession_data[19] else 0
+            progressiveCarries = int(possession_data[20]) if possession_data[20] else 0
+            carriesIntoFinalThird = int(possession_data[21]) if possession_data[21] else 0
+            carriesIntoPenaltyArea = int(possession_data[22]) if possession_data[22] else 0
+            miscontrols = int(possession_data[23]) if possession_data[23] else 0
+            dispossessed = int(possession_data[24]) if possession_data[24] else 0
+            passesReceived = int(possession_data[25]) if possession_data[25] else 0
+            passesReceivedProgressive = int(possession_data[26]) if possession_data[26] else 0
+
+            player = JugadorModel.objects.filter(player=player_name).first()
+
+            with transaction.atomic():
+                if player:
+                    Possession.objects.update_or_create(
+                        player = player,
+                        defaults={
+                            
+                            'touches':touches,
+                            'touchesPenaltyArea':touchesPenaltyArea,
+                            'touchesDefense': touchesDefense,
+                            'touchesMiddle':touchesMiddle,
+                            'touchesOffense':touchesMiddle,
+                            'touchesOpponentPenaltyArea':touchesOpponentPenaltyArea,
+                            'touchesLiveBall':touchesLiveBall,
+                            'takeOnAttempted':takeOnAttempted,
+                            'takeOnSuccesful':takeOnSuccesful,
+                            'takeOnSuccesfulPorcentage':takeOnSuccesfulPorcentage,
+                            'takeOnTackled':takeOnTackled,
+                            'takeOnTackledPorcentage':takeOnTackledPorcentage,
+                            'carries':carries,
+                            'carriesTotalDistance':carriesTotalDistance,
+                            'carriesProgressiveDistance':carriesProgressiveDistance,
+                            'progressiveCarries':progressiveCarries,
+                            'carriesIntoFinalThird':carriesIntoFinalThird,
+                            'carriesIntoPenaltyArea':carriesIntoPenaltyArea,
+                            'miscontrols':miscontrols,
+                            'dispossessed':dispossessed,
+                            'passesReceived':passesReceived,
+                            'passesReceivedProgressive':passesReceivedProgressive
+                        }
+                    )
+
     else: 
         print(f'error en el request {res.status_code}')
     return dict_datos
