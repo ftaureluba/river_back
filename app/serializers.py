@@ -42,7 +42,7 @@ class PossessionSerializer(serializers.ModelSerializer):
 class JugadorSerializer(serializers.ModelSerializer):
     shootingmodel = ShootingModelSerializer(read_only = True)
     goalandshotcreation = GoalAndShotCreationSerializer(read_only = True)
-    goalkeeper = GoalKeeperStatsSerializer(read_only = True)
+    goalkeeperstats = GoalKeeperStatsSerializer(read_only = True)
     defensiveactions = DefensiveActionsSerializer(read_only = True)
     passing = PassingSerializer(read_only=True)
     passtypes = PassTypesSerializer(read_only = True)
