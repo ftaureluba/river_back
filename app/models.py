@@ -35,6 +35,7 @@ class JugadorModel(models.Model):
     expectedGoalsPlusAssistsPerNinety = models.FloatField()
     nonPenaltyExpectedGoalsPerNinety = models.FloatField()
     nonPenaltyGoalsPlusExpectedAssistsPerNinety = models.FloatField()
+    photo = models.URLField(null=True)
 
 
 class ShootingModel(models.Model):
