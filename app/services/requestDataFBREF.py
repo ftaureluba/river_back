@@ -3,7 +3,6 @@ import requests
 from app.models import JugadorModel,Possession, ShootingModel, GoalAndShotCreation, GoalkeeperStats, Passing, PassTypes, DefensiveActions
 from django.db import transaction
 
-#, 'id': 'stats_shooting_combined'
 def data():
 
     url = 'https://fbref.com/en/squads/ef99c78c/2024/all_comps/River-Plate-Stats-All-Competitions'
