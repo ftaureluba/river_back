@@ -6,8 +6,128 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import time
+import json
+import pandas as pd
+import http.client
 
-# Set up the Selenium WebDriver
+class InvalidStrType(Exception):
+    def __init__(self, param):
+        self.message = f"{param} must be a string.\n{param} debe ser un string"
+        super().__init__(self.message)
+
+
+class MatchDoesntHaveInfo(Exception):
+    def __init__(self, path):
+        self.message = f"Match in path {path} doesn't have enough information for this functions, try with another one.\nEl partido en el path {path} no tiene la información para estas funciones, pruebe con otro."
+        super().__init__(self.message)
+
+
+class SofaScoreScraper:
+    # Method to get match ID
+    def get_match_id(self, match_url):
+        if type(match_url) != str:
+            raise InvalidStrType(match_url)
+        match_id = match_url.split(':')[-1]
+        return match_id
+
+    def get_team_names(self, match_url):
+        """Get the team names for the home and away teams
+
+        Args:
+            match_url (string): Full link to a SofaScore match
+
+        Returns:
+            strings: Name of home and away team.
+        """
+
+        data = self.get_match_data(match_url)
+
+        try:
+            home_team = data['event']['homeTeam']['name']
+        except KeyError:
+            raise MatchDoesntHaveInfo(match_url)
+        
+        away_team = data['event']['awayTeam']['name']
+
+        return home_team, away_team
+
+    def get_match_data(self, match_url):
+        """Gets all the general data from a match 
+
+        Args:
+            match_url (str): Full link to a SofaScore match
+
+        Returns:
+            json: Data of the match.
+        """
+        
+        match_id = self.get_match_id(match_url)
+        
+        url = f'api/v1/event/{match_id}'
+        
+        data = self.httpclient_request(url)
+        
+        time.sleep(3)
+        
+        json_data = json.loads(data)
+        
+        return json_data
+
+    # Method to get players match stats
+    def get_players_match_stats(self, match_url):
+        match_id = self.get_match_id(match_url)
+        home_name, away_name = self.get_team_names(match_url)
+        
+        request_url = f'api/v1/event/{match_id}/lineups'
+        
+        data = self.httpclient_request(request_url)  # Assuming this is implemented
+        response = json.loads(data)
+        
+        names = {'home': home_name, 'away': away_name}
+        dataframes = {}
+        for team in names.keys():
+            data = pd.DataFrame(response[team]['players'])
+            try:
+                columns_list = [
+                    data['player'].apply(pd.Series), data['shirtNumber'], 
+                    data['jerseyNumber'], data['position'], data['substitute'],
+                    data['statistics'].apply(pd.Series, dtype=object),
+                    data['captain']
+                ]
+            except KeyError:
+                raise MatchDoesntHaveInfo(match_url)
+            
+            df = pd.concat(columns_list, axis=1)
+            df['team'] = names[team]
+            dataframes[team] = df
+        
+        return dataframes['home'], dataframes['away']
+
+
+    def httpclient_request(self, path):
+        """Request used to SofaScore
+
+        Args:
+            path (str): Part of the url to make the request
+
+        Returns:
+            data: _description_
+        """
+        time.sleep(5)
+        url = "api.sofascore.com"
+
+        conn = http.client.HTTPSConnection(url)
+
+        conn.request("GET", path)
+
+        res = conn.getresponse()
+
+        data = res.read()
+
+        conn.close()
+        
+        return data
+    
 def init_driver():
     options = webdriver.ChromeOptions()
     options.add_argument("--no-sandbox")
@@ -44,50 +164,16 @@ def data_sofascore():
                 full_url = f"https://www.sofascore.com{last_match_url}"
                 print(f"Last match URL: {full_url}")
                 
-                # Step 2: Load the match details page
-                driver.get(full_url)
-                time.sleep(5)
 
-                # Step 3: Try clicking the button to load player panel (Using CSS Selector)
-                try:
-                    WebDriverWait(driver, 30).until(
-                        EC.element_to_be_clickable((By.CSS_SELECTOR, "div.Box.bkrWzf.Tab.cbSGUp.secondary"))
-                    ).click()
-                    print("Clicked to load player panel.")
-                except Exception as e:
-                    print(f"Failed to click the button: {e}")
-                    driver.save_screenshot('error_screenshot.png')  # Take screenshot for debugging
-                    return
-                
-                # Step 4: Parse the match details page again
-                match_soup = BeautifulSoup(driver.page_source, 'html.parser')
-                
-                # Step 5: Extract player data (replace 'Table fEUhaC' and 'TabPanel bpHovE' with the real classes if needed)
-                table = match_soup.find('div', {'data-panelid': '2', 'class': 'TabPanel bpHovE'})
-                if table:
-                    players_table = table.find('table', {'class': 'Table fEUhaC'})
-                    if players_table:
-                        players_table_rows = players_table.find_all('tr')
-                        data = []
-                        for row in players_table_rows:
-                            cols = row.find_all('td')
-                            if len(cols) > 1:
-                                player_name = cols[1].text.strip()
-                                rating = cols[-1].text.strip()
-                                data.append((player_name, rating))
-                        
-                        # Print player data
-                        for player, rating in data:
-                            print(f"Player: {player}, Rating: {rating}")
-                    else:
-                        print("Players table not found.")
-                else:
-                    print("Player panel not found.")
-            else:
-                print("No match links found.")
+                scraper = SofaScoreScraper()
+                home_team_df, away_team_df = scraper.get_players_match_stats(full_url)
+                print(home_team_df)
+                print(away_team_df)
+               
         else:
             print("Match container not found.")
     
     finally:
         # Close the browser after scraping is done
         driver.quit()
+
