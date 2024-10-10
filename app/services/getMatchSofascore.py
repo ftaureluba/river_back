@@ -10,6 +10,9 @@ import json
 import pandas as pd
 import http.client
 
+pd.set_option('display.max_columns', None)  # Show all columns
+pd.set_option('display.max_rows', None)     # Show all rows
+
 class InvalidStrType(Exception):
     def __init__(self, param):
         self.message = f"{param} must be a string.\n{param} debe ser un string"
@@ -130,6 +133,7 @@ class SofaScoreScraper:
     
 def init_driver():
     options = webdriver.ChromeOptions()
+    options.add_argument("--headless")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     
