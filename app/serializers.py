@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import (
-    JugadorModel, ShootingModel, GoalAndShotCreation, GoalkeeperStats,DefensiveActions, Passing, PassTypes, Possession
+    JugadorModel, ShootingModel, GoalAndShotCreation, GoalkeeperStats,DefensiveActions, Passing, PassTypes, Possession, MatchData
 )
 
 
@@ -50,3 +50,11 @@ class JugadorSerializer(serializers.ModelSerializer):
     class Meta:
         model = JugadorModel
         fields = '__all__'
+
+
+class MatchDataSerializer(serializers.Serializer):
+    class Meta:
+        model = MatchData
+        fields = '__all__'
+
+    

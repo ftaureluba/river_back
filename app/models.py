@@ -202,3 +202,14 @@ class Possession(models.Model):
     dispossessed = models.IntegerField()
     passesReceived = models.IntegerField()
     passesReceivedProgressive = models.IntegerField()
+
+
+class MatchData(models.Model):
+    player_name = models.CharField(max_length=255)
+    jersey_number = models.IntegerField()
+    position = models.CharField(max_length=50)
+    is_substitute = models.BooleanField()
+    statistics = models.JSONField()  # Use JSONField to store statistics as a JSON object
+    is_captain = models.BooleanField()
+    team = models.CharField(max_length=10)
+    player_id = models.IntegerField(null=True, blank=True)

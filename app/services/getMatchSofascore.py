@@ -9,6 +9,8 @@ import time
 import json
 import pandas as pd
 import http.client
+from app.models import MatchData
+
 
 pd.set_option('display.max_columns', None)  # Show all columns
 pd.set_option('display.max_rows', None)     # Show all rows
@@ -90,11 +92,16 @@ class SofaScoreScraper:
         dataframes = {}
         for team in names.keys():
             data = pd.DataFrame(response[team]['players'])
+
             try:
                 columns_list = [
-                    data['player'].apply(pd.Series), data['shirtNumber'], 
-                    data['jerseyNumber'], data['position'], data['substitute'],
-                    data['statistics'].apply(pd.Series, dtype=object),
+                    data['player'].apply(lambda x : x.get('name') if isinstance(x, dict) else None),
+                    data['shirtNumber'], 
+                    data['jerseyNumber'],
+                    data['position'], 
+                    data['substitute'],
+                    data['statistics'].apply(lambda x: x.get('minutesPlayed') if isinstance(x, dict) else None),
+                    data['statistics'].apply(lambda x: x.get('rating') if isinstance(x, dict) else None),
                     data['captain']
                 ]
             except KeyError:
@@ -160,7 +167,24 @@ def data_sofascore():
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         
         # Step 1: Find the last match link
-        last_matches_div = soup.find_all("div", {"class": "sc-dce818dc-0 cjKrdG"})
+        last_matches_div = soup.find_all("div", {"class": "sc-e07a153f-0 dbKvbg"}) #esto es una verga porque el class de este container cambia
+        print("last matches div = sc-e07a153f-0 dbKvbg")
+
+
+
+
+
+
+#EL PROBLEMA ESTA ANTES DE ACA, PORQUE NUNCA LLEGA A PRINTEAR NI SIQUIERA LA BOLUDEZ ESTA DE ARRIBA. O SE TARA EN EL SOUP O EN EL FIND, PERO QUE REVERENDA PAJA
+
+
+
+
+
+
+
+
+
         if last_matches_div:
             match_links = last_matches_div[0].find_all('a')  # Select the first container and get the links
             if match_links:
@@ -171,8 +195,35 @@ def data_sofascore():
 
                 scraper = SofaScoreScraper()
                 home_team_df, away_team_df = scraper.get_players_match_stats(full_url)
+                '''
+                for _, row in home_team_df.iterrows():
+                    MatchData.objects.create(
+                        player_name=row['name'],
+                        jersey_number=row['shirtNumber'],
+                        position=row['position'],
+                        is_substitute=row['substitute'],
+                        statistics=row['statistics'].to_dict() if isinstance(row['statistics'], dict) else {},
+                        is_captain=row['captain'],
+                        team='home',
+                        player_id=row.get('id')
+                    )
+
+                # Save away team data to the database
+                for _, row in away_team_df.iterrows():
+                    MatchData.objects.create(
+                        player_name=row['name'],
+                        jersey_number=row['shirtNumber'],
+                        position=row['position'],
+                        is_substitute=row['substitute'],
+                        statistics=row['statistics'].to_dict() if isinstance(row['statistics'], dict) else {},
+                        is_captain=row['captain'],
+                        team='away',
+                        player_id=row.get('id')
+                    )
+                    '''
                 print(home_team_df)
                 print(away_team_df)
+                print("Data saved to the database successfully.")
                
         else:
             print("Match container not found.")
@@ -180,4 +231,6 @@ def data_sofascore():
     finally:
         # Close the browser after scraping is done
         driver.quit()
+
+
 
