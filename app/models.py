@@ -209,7 +209,8 @@ class MatchData(models.Model):
     jersey_number = models.IntegerField()
     position = models.CharField(max_length=50)
     is_substitute = models.BooleanField()
-    statistics = models.JSONField()  # Use JSONField to store statistics as a JSON object
+    minutes_played = models.IntegerField(null=True, blank=True)  
+    rating = models.FloatField(null=True, blank=True)
     is_captain = models.BooleanField()
     team = models.CharField(max_length=10)
     player_id = models.IntegerField(null=True, blank=True)

@@ -87,31 +87,38 @@ class SofaScoreScraper:
         
         data = self.httpclient_request(request_url)  # Assuming this is implemented
         response = json.loads(data)
-        
-        names = {'home': home_name, 'away': away_name}
-        dataframes = {}
-        for team in names.keys():
-            data = pd.DataFrame(response[team]['players'])
+        target_team = "River Plate"
+        if home_name == target_team:
+            team_key = 'home'
+            team_name = home_name
+        elif away_name == target_team:
+            team_key = 'away'
+            team_name = away_name
 
-            try:
-                columns_list = [
-                    data['player'].apply(lambda x : x.get('name') if isinstance(x, dict) else None),
-                    data['shirtNumber'], 
-                    data['jerseyNumber'],
-                    data['position'], 
-                    data['substitute'],
-                    data['statistics'].apply(lambda x: x.get('minutesPlayed') if isinstance(x, dict) else None),
-                    data['statistics'].apply(lambda x: x.get('rating') if isinstance(x, dict) else None),
-                    data['captain']
-                ]
-            except KeyError:
-                raise MatchDoesntHaveInfo(match_url)
-            
-            df = pd.concat(columns_list, axis=1)
-            df['team'] = names[team]
-            dataframes[team] = df
+        data = pd.DataFrame(response[team_key]['players'])
+    
         
-        return dataframes['home'], dataframes['away']
+        try:
+            columns_list = [
+                data['player'].apply(lambda x : x.get('name') if isinstance(x, dict) else None),
+                data['shirtNumber'], 
+                data['position'], 
+                data['substitute'],
+                data['statistics'].apply(lambda x: x.get('minutesPlayed') if isinstance(x, dict) else None).fillna(0),  # Replace NaN with None
+                data['statistics'].apply(lambda x: x.get('rating') if isinstance(x, dict) else None).fillna(0),
+                data['captain'].fillna(False)
+            ]
+        except KeyError:
+            raise MatchDoesntHaveInfo(match_url)
+        
+        df = pd.concat(columns_list, axis=1)
+        df.columns = [
+        'player', 'shirtNumber', 'position', 'substitute', 
+        'minutesPlayed', 'rating', 'captain'
+        ]
+        df['team'] = team_name
+        
+        return df 
 
 
     def httpclient_request(self, path):
@@ -170,21 +177,6 @@ def data_sofascore():
         last_matches_div = soup.find_all("div", {"class": "sc-e07a153f-0 dbKvbg"}) #esto es una verga porque el class de este container cambia
         print("last matches div = sc-e07a153f-0 dbKvbg")
 
-
-
-
-
-
-#EL PROBLEMA ESTA ANTES DE ACA, PORQUE NUNCA LLEGA A PRINTEAR NI SIQUIERA LA BOLUDEZ ESTA DE ARRIBA. O SE TARA EN EL SOUP O EN EL FIND, PERO QUE REVERENDA PAJA
-
-
-
-
-
-
-
-
-
         if last_matches_div:
             match_links = last_matches_div[0].find_all('a')  # Select the first container and get the links
             if match_links:
@@ -194,35 +186,24 @@ def data_sofascore():
                 
 
                 scraper = SofaScoreScraper()
-                home_team_df, away_team_df = scraper.get_players_match_stats(full_url)
-                '''
-                for _, row in home_team_df.iterrows():
+                df = scraper.get_players_match_stats(full_url)
+                
+                for _, row in df.iterrows():
                     MatchData.objects.create(
-                        player_name=row['name'],
+                        player_name=row['player'],
                         jersey_number=row['shirtNumber'],
                         position=row['position'],
                         is_substitute=row['substitute'],
-                        statistics=row['statistics'].to_dict() if isinstance(row['statistics'], dict) else {},
+                        minutes_played=row['minutesPlayed'],  
+                        rating=row['rating'],                 
                         is_captain=row['captain'],
                         team='home',
                         player_id=row.get('id')
                     )
 
                 # Save away team data to the database
-                for _, row in away_team_df.iterrows():
-                    MatchData.objects.create(
-                        player_name=row['name'],
-                        jersey_number=row['shirtNumber'],
-                        position=row['position'],
-                        is_substitute=row['substitute'],
-                        statistics=row['statistics'].to_dict() if isinstance(row['statistics'], dict) else {},
-                        is_captain=row['captain'],
-                        team='away',
-                        player_id=row.get('id')
-                    )
-                    '''
-                print(home_team_df)
-                print(away_team_df)
+                
+                print(df)
                 print("Data saved to the database successfully.")
                
         else:
