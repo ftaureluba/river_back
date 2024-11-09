@@ -10,10 +10,11 @@ import json
 import pandas as pd
 import http.client
 from app.models import MatchData
+import requests
+from django.db import transaction
 
-
-pd.set_option('display.max_columns', None)  # Show all columns
-pd.set_option('display.max_rows', None)     # Show all rows
+pd.set_option('display.max_columns', None)  
+pd.set_option('display.max_rows', None)     
 
 class InvalidStrType(Exception):
     def __init__(self, param):
@@ -78,14 +79,13 @@ class SofaScoreScraper:
         
         return json_data
 
-    # Method to get players match stats
     def get_players_match_stats(self, match_url):
         match_id = self.get_match_id(match_url)
         home_name, away_name = self.get_team_names(match_url)
         
         request_url = f'api/v1/event/{match_id}/lineups'
         
-        data = self.httpclient_request(request_url)  # Assuming this is implemented
+        data = self.httpclient_request(request_url)  
         response = json.loads(data)
         target_team = "River Plate"
         if home_name == target_team:
@@ -153,65 +153,61 @@ def init_driver():
     
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
     
-    # Set the window size to simulate desktop view
-    driver.set_window_size(1920, 1080)  # Set a standard desktop resolution
+    driver.set_window_size(1920, 1080)  
     return driver
 
-# Scrape data from the River Plate page
 def data_sofascore():
     driver = init_driver()
     
     try:
-        # Load the River Plate page
         RIVER_URL = 'https://www.sofascore.com/team/football/river-plate/3211'
         print(f"Fetching data from: {RIVER_URL}")
         driver.get(RIVER_URL)
 
-        # Give time for page to load
         time.sleep(5)
 
-        # Get the page source and parse it with BeautifulSoup
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         
-        # Step 1: Find the last match link
-        last_matches_div = soup.find_all("div", {"class": "sc-e07a153f-0 dbKvbg"}) #esto es una verga porque el class de este container cambia
-        print("last matches div = sc-e07a153f-0 dbKvbg")
+        try:
+            req = requests.get("https://www.sofascore.com/api/v1/team/3211/performance")
+            recent_form = req.json()
+            ultimo_partido = recent_form['events'][-1]
+            custom_id = ultimo_partido['customId']
+            id = ultimo_partido['id']
+            slug = ultimo_partido['slug']
+        finally:
 
-        if last_matches_div:
-            match_links = last_matches_div[0].find_all('a')  # Select the first container and get the links
-            if match_links:
-                last_match_url = match_links[-1]['href']
-                full_url = f"https://www.sofascore.com{last_match_url}"
-                print(f"Last match URL: {full_url}")
-                
+        
+            last_match_url = f"https://sofascore.com/football/match/{slug}/{custom_id}#id:{id}"
+            scraper = SofaScoreScraper()
+            df = scraper.get_players_match_stats(last_match_url)
+            
+            match_data_list = [
+                MatchData(
+                    player_name=row['player'],
+                    jersey_number=row['shirtNumber'],
+                    position=row['position'],
+                    is_substitute=row['substitute'],
+                    minutes_played=row['minutesPlayed'],
+                    rating=row['rating'],
+                    is_captain=row['captain'],
+                    team='home',
+                    player_id=row.get('id')
+                )
+                for _, row in df.iterrows()
+            ]
 
-                scraper = SofaScoreScraper()
-                df = scraper.get_players_match_stats(full_url)
-                
-                for _, row in df.iterrows():
-                    MatchData.objects.create(
-                        player_name=row['player'],
-                        jersey_number=row['shirtNumber'],
-                        position=row['position'],
-                        is_substitute=row['substitute'],
-                        minutes_played=row['minutesPlayed'],  
-                        rating=row['rating'],                 
-                        is_captain=row['captain'],
-                        team='home',
-                        player_id=row.get('id')
-                    )
-
-                # Save away team data to the database
-                
-                print(df)
-                print("Data saved to the database successfully.")
-               
-        else:
-            print("Match container not found.")
+            with transaction.atomic():
+                MatchData.objects.all().delete()
+                MatchData.objects.bulk_create(match_data_list)
+            
+            print(df)
+            print("Data saved to the database successfully.")
+            
     
     finally:
-        # Close the browser after scraping is done
         driver.quit()
+    return df
 
 
 
