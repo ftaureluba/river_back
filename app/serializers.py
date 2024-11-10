@@ -52,7 +52,7 @@ class JugadorSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class MatchDataSerializer(serializers.Serializer):
+class MatchDataSerializer(serializers.ModelSerializer):
     class Meta:
         model = MatchData
         fields = '__all__'
