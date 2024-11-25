@@ -9,9 +9,10 @@ import time
 import json
 import pandas as pd
 import http.client
-from app.models import MatchData
+from app.models import MatchData, JugadorModel
 import requests
 from django.db import transaction
+import unidecode
 
 pd.set_option('display.max_columns', None)  
 pd.set_option('display.max_rows', None)     
@@ -26,6 +27,14 @@ class MatchDoesntHaveInfo(Exception):
     def __init__(self, path):
         self.message = f"Match in path {path} doesn't have enough information for this functions, try with another one.\nEl partido en el path {path} no tiene la información para estas funciones, pruebe con otro."
         super().__init__(self.message)
+
+NAME_MAP = {
+    'Nacho Fernández': 'Ignacio Fernández',
+    "Agustin Sant'Anna" : "Agustín Sant'Anna",
+    'Gonzalo Martinez' : 'Gonzalo Nicolás Martínez',
+    'Leandro González Pírez' : 'Leandro González Pirez'
+}
+
 
 
 class SofaScoreScraper:
@@ -182,25 +191,37 @@ def data_sofascore():
             scraper = SofaScoreScraper()
             df = scraper.get_players_match_stats(last_match_url)
             
-            match_data_list = [
-                MatchData(
-                    player_name=row['player'],
-                    jersey_number=row['shirtNumber'],
-                    position=row['position'],
-                    is_substitute=row['substitute'],
-                    minutes_played=row['minutesPlayed'],
-                    rating=row['rating'],
-                    is_captain=row['captain'],
-                    team='home',
-                    player_id=row.get('id')
-                )
-                for _, row in df.iterrows()
-            ]
+            match_data_list = []
 
             with transaction.atomic():
-                MatchData.objects.all().delete()
+                MatchData.objects.all().delete()  
+                    
+                for _, row in df.iterrows():
+                    try:
+                        jugador_instance = JugadorModel.objects.get(player=row['player'])
+                    except JugadorModel.DoesNotExist:
+                        print(f"No matching player found in JugadorModel for: {row['player']}")
+                        try:
+                            nombre_mapeado = NAME_MAP.get(row['player'])
+                            jugador_instance = JugadorModel.objects.get(player=nombre_mapeado)
+                        except JugadorModel.DoesNotExist:
+                            print('na ni idea')
+
+                    match_data = MatchData(
+                        player_name=row['player'],
+                        jugador=jugador_instance,  
+                        jersey_number=row['shirtNumber'],
+                        position=row['position'],
+                        is_substitute=row['substitute'],
+                        minutes_played=row['minutesPlayed'],
+                        rating=row['rating'],
+                        is_captain=row['captain'],
+                        team='home',
+                        player_id=row.get('id')
+                    )
+                    match_data_list.append(match_data)
                 MatchData.objects.bulk_create(match_data_list)
-            
+
             print(df)
             print("Data saved to the database successfully.")
             

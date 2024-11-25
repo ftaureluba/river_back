@@ -2,7 +2,7 @@ from django.db import models
 
 
 class JugadorModel(models.Model):
-    player = models.CharField(max_length=100)
+    player = models.CharField(max_length=100, unique=True)
     nation = models.CharField(max_length=100)
     position = models.CharField(max_length=100)
     age = models.CharField(max_length=100)
@@ -206,6 +206,7 @@ class Possession(models.Model):
 
 class MatchData(models.Model):
     player_name = models.CharField(max_length=255)
+    jugador = models.OneToOneField(JugadorModel, on_delete=models.CASCADE, null=True, blank=True)
     jersey_number = models.IntegerField()
     position = models.CharField(max_length=50)
     is_substitute = models.BooleanField()
