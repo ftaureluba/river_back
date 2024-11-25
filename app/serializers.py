@@ -53,6 +53,7 @@ class JugadorSerializer(serializers.ModelSerializer):
 
 
 class MatchDataSerializer(serializers.ModelSerializer):
+    jugador = JugadorSerializer(read_only = True)
     class Meta:
         model = MatchData
         fields = '__all__'
