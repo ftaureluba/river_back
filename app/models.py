@@ -36,7 +36,7 @@ class JugadorModel(models.Model):
     nonPenaltyExpectedGoalsPerNinety = models.FloatField()
     nonPenaltyGoalsPlusExpectedAssistsPerNinety = models.FloatField()
     photo = models.URLField(null=True)
-
+    team = models.TextField(null=True)
 
 class ShootingModel(models.Model):
     player = models.OneToOneField(JugadorModel, on_delete=models.CASCADE)
